@@ -4,15 +4,15 @@ require "logger"
 
 module Ello
 	module Cas
-		class Cas
-			def initialize
+		class Core
+			def initialize(keyspace: "test_ello")				
 				@cluster = Cassandra.cluster(logger: Logger.new($stderr))
+				@cluster.connect(keyspace)
+				@cluster.each_keyspace { |ks| puts "#{ks.name}"}
 			end
 
-			def print_hosts
-				@cluster.each_host do |host|
-					puts "Host #{host.ip}: id=#{host.id} datacenter=#{host.datacenter} rack=#{host.rack}"
-				end
+			def hosts
+				@cluster.each_host.map { |host| host.ip }
 			end
 		end
 	end

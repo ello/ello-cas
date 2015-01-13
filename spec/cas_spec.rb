@@ -2,12 +2,13 @@ require 'spec_helper'
 
 module Ello
 	module Cas
-		describe Cas do 
-			subject { Cas.new }
+		describe Core do 
+			subject { Core.new(keyspace: nil) }
 
-			describe '#print_hosts' do 
-				it 'does stuff' do
-					subject.print_hosts
+			describe '#hosts' do 
+				let(:output) { subject.hosts }
+				it 'should return the localhost host' do
+					expect(output).to include('127.0.0.1')
 				end
 			end
 		end
