@@ -1,0 +1,58 @@
+### DML ###
+
+# Keyspace Name
+keyspace: ello_stress
+
+# The CQL for creating a keyspace (optional if it already exists)
+keyspace_definition: |
+  CREATE KEYSPACE ello_stress WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
+
+# Table name
+table: friends_activities
+
+# The CQL for creating a table you wish to stress (optional if it already exists)
+table_definition: |
+  CREATE TABLE friends_activities (
+    user_id int,
+    subject_id int, 
+    subject_type text,
+    posted_at timeuuid,
+    updated_at timestamp,
+    kind text,
+    originating_user_id int,
+    PRIMARY KEY(user_id, posted_at)
+  ) WITH CLUSTERING ORDER BY (posted_at DESC);
+
+
+### Column Distribution Specifications ###
+
+columnspec:
+  - name: subject_type
+    size: gaussian(15..40) 
+
+  - name: posted_at
+    cluster: fixed(10000)
+
+  - name: kind
+    size: gaussian(15..40)   
+
+### Batch Ratio Distribution Specifications ###
+
+insert:
+  partitions: fixed(1)            # Our partition key is the domain so only insert one per batch
+
+  select:    fixed(1)/10000        # We have 1000 posts per domain so 1/1000 will allow 1 post per batch
+
+  batchtype: UNLOGGED             # Unlogged batches
+
+
+#
+# A list of queries you wish to run against the schema
+#
+queries:
+   singlepost:
+      cql: select * from friends_activities where user_id = ? LIMIT 1 
+      fields: samerow
+   timeline: 
+      cql: select subject_id, subject_type, posted_at, kind, originating_user_id from friends_activities where user_id = ? LIMIT 10
+      fields: samerow

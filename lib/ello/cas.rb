@@ -5,10 +5,13 @@ require "logger"
 module Ello
 	module Cas
 		class Core
-			def initialize(keyspace: "test_ello")				
-				@cluster = Cassandra.cluster(logger: Logger.new($stderr))
+			def initialize(keyspace: "ello_test")				
+				@cluster = Cassandra.cluster(				
+					logger: Logger.new($stderr), 
+					compression: :lz4,
+					hosts: ['127.0.0.1', '127.0.0.2', '127.0.0.3']
+				)
 				@cluster.connect(keyspace)
-				@cluster.each_keyspace { |ks| puts "#{ks.name}"}
 			end
 
 			def hosts
