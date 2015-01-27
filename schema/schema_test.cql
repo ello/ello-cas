@@ -10,7 +10,7 @@ CREATE TABLE friends_activities (
 	subject_id int, 
 	subject_type text,
 	posted_at timeuuid,
-	updated_at timestamp,
+	updated_at timeuuid,
 	kind text,
 	originating_user_id int,
 	PRIMARY KEY(user_id, posted_at)
@@ -21,7 +21,7 @@ CREATE TABLE noise_activities (
 	subject_id int, 
 	subject_type text,
 	posted_at timeuuid,
-	updated_at timestamp,
+	updated_at timeuuid,
 	-- currently only one type of noise, can eliminate column?
 	kind text,
 	originating_user_id int,
@@ -33,7 +33,7 @@ CREATE TABLE notifications_activities (
 	subject_id int, 
 	subject_type text,
 	posted_at timeuuid,
-	updated_at timestamp,
+	updated_at timeuuid,
 	kind text,
 	originating_user_id int,
 	PRIMARY KEY(user_id, posted_at)

@@ -14,3 +14,4 @@
 mkmf.log
 *.sublime*
 /vendor/
+cassandra.logdir_IS_UNDEFINED
