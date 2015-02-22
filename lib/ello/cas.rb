@@ -16,14 +16,25 @@ module Ello
 
 				@activities_insert = @session.prepare(
 					"INSERT INTO stream_activities(user_id, stream_id, subject_id, subject_type, posted_at, updated_at, kind, originating_user_id) " \
-					"VALUES (?,?,?,?,now(),now(),?,?)"
+					"VALUES (?,?,?,?,?,?,?,?)"
 				)
 
 				@activities_select = @session.prepare(
 					"SELECT subject_id, subject_type, posted_at, kind, originating_user_id " \
 					"FROM stream_activities " \
-					"WHERE user_id = ? and stream_id = ? LIMIT 10"
-				)				
+					"WHERE user_id = ? and stream_id = ? LIMIT ?"
+				)
+
+				@activities_select_paged = @session.prepare(
+					"SELECT subject_id, subject_type, posted_at, kind, originating_user_id " \
+					"FROM stream_activities " \
+					"WHERE user_id = ? and stream_id = ? " \
+					"AND posted_at < ? " \
+					"LIMIT ?"
+				)
+
+				#Not threadsafe, don't use a class level instance
+				@uuid = Cassandra::Uuid::Generator.new				
 			end
 
 			def hosts
@@ -31,14 +42,28 @@ module Ello
 				@@cluster.each_host.map { |host| host.ip }
 			end
 
-			def activities_insert(user_id, stream_id, subject_id, subject_type, kind, originating_user_id)
-				@logger.debug "#activites_insert(#{user_id}, #{stream_id}, #{subject_id}, #{subject_type}, #{kind}, #{originating_user_id})"
-				@session.execute(@activities_insert, arguments: [user_id, stream_id, subject_id, subject_type, kind, originating_user_id])
+			def activities_insert(user_id, stream_id, subject_id, subject_type, posted_at=@uuid.now, updated_at=@uuid.now, kind, originating_user_id)
+				@logger.debug "#activites_insert(#{user_id}, #{stream_id}, #{subject_id}, #{subject_type}, #{posted_at}, #{updated_at}, #{kind}, #{originating_user_id})"
+				@session.execute(
+					@activities_insert, 
+					arguments: [user_id, stream_id, subject_id, subject_type, posted_at, updated_at, kind, originating_user_id]
+				)
 			end
 
-			def activities_select(user_id, stream_id)
-				@logger.debug "#activites_select(#{user_id}, #{stream_id})"
-				@session.execute(@activities_select, arguments: [user_id, stream_id])
+			def activities_select(user_id, stream_id, page_size=10)
+				@logger.debug "#activites_select(#{user_id}, #{stream_id}, #{page_size})"
+				@session.execute(
+					@activities_select, 
+					arguments: [user_id, stream_id, page_size]
+				)
+			end
+
+			def activities_select_paged(user_id, stream_id, time_uuid, page_size=10)
+				@logger.debug "#activities_select_paged(#{user_id}, #{stream_id}, #{time_uuid}, #{page_size})"
+				@session.execute(
+					@activities_select_paged, 
+					arguments: [user_id, stream_id, time_uuid, page_size]
+				)
 			end
 
 		end
