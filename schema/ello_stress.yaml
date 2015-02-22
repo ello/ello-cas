@@ -41,7 +41,7 @@ columnspec:
 insert:
   partitions: fixed(1)            # Our partition key is the user id so only insert one per batch
 
-  select:    fixed(1)/10000        # We have 10000 posts per userid so 1/1000 will allow 1 post per batch
+  select:    fixed(1)/1000        # We have 10000 posts per userid so 1/1000 will allow 10 post per batch
 
 
 #
