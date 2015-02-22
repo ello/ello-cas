@@ -49,6 +49,51 @@ module Ello
 					expect(posted_times.last.to_time.utc.round).to eq(old_date.utc.round)
 				end
 			end
+
+			describe '#activities_select_paged' do
+				let(:user_id) { 15 }
+				let(:originating) { 25 }
+				
+				let(:new_date) { Time.new(2015, 2, 2) }
+				let(:new_date_uuid) { UUID_GENERATOR.at(new_date) }
+
+				let(:old_date) { Time.new(2015, 1, 2) }
+				let(:old_date_uuid) { UUID_GENERATOR.at(old_date) }
+
+				let(:now_uuid) { UUID_GENERATOR.now() }
+
+				before {
+					subject.activities_insert(user_id, friends_stream_id, 100, "Test Type", new_date_uuid, new_date_uuid, "Test Kind", originating)
+					subject.activities_insert(user_id, friends_stream_id, 100, "Test Type", now_uuid, now_uuid, "Test Kind", originating)
+					subject.activities_insert(user_id, friends_stream_id, 101, "Test Type", old_date_uuid, old_date_uuid, "Test Kind", originating)
+				}
+
+				it 'should return 3 results when no time is passed' do
+					results = subject.activities_select(user_id, friends_stream_id)
+					expect(results.length).to eq(3)
+				end
+
+				it 'should return older results when now is passed' do
+					results = subject.activities_select_paged(user_id, friends_stream_id, now_uuid)
+
+					expect(results.length).to eq(2)
+				end
+
+				it 'should honor passed page size' do
+					results = subject.activities_select_paged(user_id, friends_stream_id, now_uuid, 1)
+
+					expect(results.length).to eq(1)
+					expect(results.first['posted_at'].to_time.round).to eq(new_date.round)
+				end
+
+				it 'should return old results when new date passed' do
+					results = subject.activities_select_paged(user_id, friends_stream_id, new_date_uuid)
+					posted_times = results.map{|a| a['posted_at']};
+
+					expect(posted_times.uniq.length).to eq(1)
+					expect(posted_times.last.to_time.round).to eq(old_date.round)
+				end
+			end
 		end
 	end
 end
