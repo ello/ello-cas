@@ -3,7 +3,14 @@ require 'spec_helper'
 module Ello
 	module Cas
 		describe Core do 
-			subject { Core.new(keyspace: nil) }
+			# Could use SecureRandom#uuid + Cassandra::Uuid#new but this will make timeuuid's easier down the road
+			UUID_GENERATOR = Cassandra::Uuid::Generator.new
+
+			let(:friends_stream_id) { UUID_GENERATOR.uuid }
+			let(:noise_stream_id) { UUID_GENERATOR.uuid }
+			let(:notifications_stream_id) { UUID_GENERATOR.uuid }
+
+			subject { Core.new(keyspace: 'ello_streams_test') }
 
 			describe '#hosts' do 
 				let(:output) { subject.hosts }
@@ -17,13 +24,12 @@ module Ello
 				let(:user_id) { 15 }
 				let(:originating) { 25 }
 				before {
-					subject.friends_insert(user_id, 100, "Test Type", "Test Kind", originating)
+					subject.activities_insert(user_id, friends_stream_id, 100, "Test Type", "Test Kind", originating)
 				}
-				let(:output) { subject.friends_activities(user_id).first }
+				let(:output) { subject.activities_select(user_id, friends_stream_id).first }
 
-				it 'should return the record inserted' do 
+				it 'should return the record inserted' do 		
 					expect(output['originating_user_id']).to eq(originating)
-					expect(output).to_not be_nil
 				end
 			end
 		end
