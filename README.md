@@ -19,7 +19,7 @@ This should show 3 nodes with UP status.
 You can now run this to create your keyspace/table(s):
 
 ```bash
-bundle exec rake[schema/schema_streams.cql]
+bundle exec rake cas[schema/schema_streams.cql]
 ```
 
 You can now connect with _cqlsh_ and play around with your cluster.
